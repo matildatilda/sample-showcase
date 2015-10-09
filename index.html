@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ja" ng-app="showcaseModule">
+<head>
+    <meta charset="utf-8">
+    <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.3/angular.min.js"></script>
+    <script type="text/javascript" src="js/app.js"></script>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+    <title>showcase sample</title>
+</head>
+<body ng-controller="pageController as pageCtrl">
+<h2>{{"ShowCase Sample"}}</h2>
+
+<ul class="nav nav-pills">
+    <li role="presentation" class="active"><a href="#list" data-toggle="pill" ng-click="pageCtrl.showList()">一覧表示</a></li>
+    <li role="presentation"><a href="#detail" data-toggle="pill" ng-click="pageCtrl.setNewGoods()">商品登録</a></li>
+</ul>
+
+<div class="tab-content">
+    <!-- 一覧表示 -->
+    <div role="tabpanel" class="tab-pane active" id="list">
+        <div class="row" ng-controller="goodsListController as goodsListCtrl" ng-show="pageCtrl.mode.list">
+            <div class="col-sm-4" ng-repeat="goods in goodsListCtrl.goodsList">
+                <div class="card">
+                    <a href="#" class="thumbnail" ng-click="pageCtrl.showDetail();goodsListCtrl.setCurrentGoods(goods)"><img src={{goods.images[0]}} alt="Card image"></img></a>
+                    <div class="card-block">
+                        <h4 class="card-title">{{goods.title}}</h4>
+                        <p class="card-text">{{"評価: " + goods.reputation + "  (コメント:" + goods.comments.length + "）"}}</p>
+                        <a class="btn btn-primary" role="button" href="#" ng-click="pageCtrl.showDetail();goodsListCtrl.setCurrentGoods(goods)">詳細</a>
+                        <!--
+                        <button class="btn btn-primary" ng-click="pageCtrl.showDetail();goodsListCtrl.setCurrentGoods(goods)">詳細</button>
+                        -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- 詳細 -->
+        <div ng-controller="goodsController as goodsCtrl" ng-show="pageCtrl.mode.detail">
+            <div class="panel panel-default">
+                <div class="panel-heading">商品名</div>
+                <div class="panel-body">{{goodsCtrl.goodsService.currentGoods.title}}</div>
+                <div class="row">
+                    <div class="col-sm-4">    
+                        <a href="#" class="thumbnail"><img src="img/noimage_s.jpg" alt="Product Image"></a>
+                    </div>    
+                </div>
+            </div>
+            <div class="panel panel-default">
+                <div class="panel-heading">説明</div>
+                <div class="panel-body">{{goodsCtrl.goodsService.currentGoods.description}}</div>
+            </div>
+            <div class="panel panel-default">
+                <div class="panel-heading">コメント</div>
+                <ul class="list-group">
+                    <li class="list-group-item" ng-repeat="comment in goodsCtrl.goodsService.currentGoods.comments">
+                        <div class="row">
+                            <div class="col-sm-2">{{comment.user + " "}}</div>
+                            <div class="col-sm-8"ng-show="goodsCtrl.commentReadOnly">
+                                {{comment.comment}}
+                                <span class="badge">{{comment.stars}}</span>
+                            </div>
+                            <div class="col-sm-8" ng-show="!goodsCtrl.commentReadOnly">
+                                <textarea type="text" ng-model="comment.comment" rows="1"></textarea>    
+                            </div> 
+                            <div class="col-sm2" ng-show="true">
+                                <button class="btn btn-info pull-right" ng-click="goodsCtrl.switchCommentReadOnly()">e</button>
+                            </div>
+                            <div class="col-sm2" ng-show="true">
+                                <button class="btn btn-warning pull-right" ng-click="goodsCtrl.deleteComment(comment)">x</button>
+                            </div>
+                        </div>    
+                    </li>
+                </ul>
+            </div>
+            <!-- コメント入力 -->
+            <form ng-controller="commentController as commentCtrl">
+                <div class="row">
+                    <div class="col-sm-2"><input type="text" class="form-control" placeholder="ユーザー名" ng-model="commentCtrl.comment.user"></input></div>
+                    <div class="col-sm-4"><textarea type="text" class="form-control" rows="1" placeholder="コメントを入力してください" ng-model="commentCtrl.comment.comment"></textarea></div>
+                    <div class="col-sm-4">
+                        <span><button class="btn btn-default" type="button" ng-click="commentCtrl.setStars(1)">1</button></span>
+                        <span><button class="btn btn-default" type="button" ng-click="commentCtrl.setStars(2)">2</button></span>
+                        <span><button class="btn btn-default" type="button" ng-click="commentCtrl.setStars(3)">3</button></span>
+                        <span><button class="btn btn-default" type="button" ng-click="commentCtrl.setStars(4)">4</button></span>
+                        <span><button class="btn btn-default" type="button" ng-click="commentCtrl.setStars(5)">5</button></span>
+                    </div>
+                    <div class="col-sm-2">
+                        <button type="submit" class="btn btn-default" ng-click="commentCtrl.addComment(goodsCtrl.goodsService.currentGoods)">コメント送信</button> 
+                    </div>
+                </div>
+            </form>
+        </div>    
+    </div>
+    <!-- 商品登録 -->
+    <div role="tabpanel" class="tab-pane" id="detail">
+        <div ng-controller="goodsController as goodsCtrl">
+            <form>
+            <div class="form-group">
+                <label>商品名</label>
+                <input type="text" class="form-control" placeholder="商品名を入力してください" ng-readonly="goodsCtrl.isReadOnly()" ng-model="goodsCtrl.goodsService.currentGoods.title"></input>
+            </div>
+            <div class="form-group">
+                <label>説明</label>
+                <textarea class="form-control" rows="2" placeholder="説明を入力してください" ng-readonly="goodsCtrl.isReadOnly()" ng-model="goodsCtrl.goodsService.currentGoods.description"></textarea>
+            </div>
+            <div class="form-group">
+                <input type="file" ng-readonly="" id="" ng-model="goodsCtrl.image" ng-click="goodsCtrl.setImage()"></input>
+            </div>
+            <p>Image</p>
+            <div ng-repeat="goodsImage in goodsCtrl.goodsService.currentGoods.images">
+                <img src={{goodsImage}}></img>  
+            </div>
+            <button ng-show="goodsCtrl.goodsService.isNew" ng-click="goodsCtrl.addGoods(goodsCtrl.goodsService.currentGoods)" type="button" class="btn btn-primary">追加</button>
+            <button ng-show="!goodsCtrl.goodsService.isNew" ng-click="goodsCtrl.switchReadOnly()" type="button" class="btn btn-info">更新</button>
+            <button ng-show="!goodsCtrl.goodsService.isNew" ng-click="goodsCtrl.deleteGoods(goodsCtrl.goodsService.currentGoods)" type="button" class="btn btn-warning">削除</button>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>
