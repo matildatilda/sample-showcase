@@ -16,10 +16,14 @@
 </head>
 <body ng-controller="pageController as pageCtrl">
 <h2>{{"ShowCase Sample"}}</h2>
+<!-- ユーザー情報 -->
+<div>
+    <p class="text-right"><span class="glyphicon glyphicon-user"></span>現在のユーザー：{{pageCtrl.userService.user.name}}</p>
+</div>
 
 <ul class="nav nav-pills">
     <li role="presentation" class="active"><a href="#list" data-toggle="pill" ng-click="pageCtrl.showList()">一覧表示</a></li>
-    <li role="presentation"><a href="#detail" data-toggle="pill" ng-click="pageCtrl.setNewGoods()">商品登録</a></li>
+    <li role="presentation"><a href="#detail" data-toggle="pill" ng-click="pageCtrl.setNewGoods()" ng-show="pageCtrl.checkAuthority()">商品登録</a></li>
 </ul>
 
 <div class="tab-content">
@@ -33,9 +37,6 @@
                         <h4 class="card-title">{{goods.title}}</h4>
                         <p class="card-text">{{"評価: " + goods.reputation + "  (コメント:" + goods.comments.length + "）"}}</p>
                         <a class="btn btn-primary" role="button" href="#" ng-click="pageCtrl.showDetail();goodsListCtrl.setCurrentGoods(goods)">詳細</a>
-                        <!--
-                        <button class="btn btn-primary" ng-click="pageCtrl.showDetail();goodsListCtrl.setCurrentGoods(goods)">詳細</button>
-                        -->
                     </div>
                 </div>
             </div>
@@ -44,7 +45,9 @@
         <div ng-controller="goodsController as goodsCtrl" ng-show="pageCtrl.mode.detail">
             <div class="panel panel-default">
                 <div class="panel-heading">商品名</div>
-                <div class="panel-body">{{goodsCtrl.goodsService.currentGoods.title}}</div>
+                <div class="panel-body">{{goodsCtrl.goodsService.currentGoods.title}}
+                    <input type="text" class="form-control" placeholder="商品名を入力してください" ng-show="!goodsCtrl.readOnly" ng-model="goodsCtrl.goodsService.currentGoods.title"></input>
+                </div>
                 <div class="row">
                     <div class="col-sm-4">    
                         <a href="#" class="thumbnail"><img src="img/noimage_s.jpg" alt="Product Image"></a>
@@ -53,26 +56,29 @@
             </div>
             <div class="panel panel-default">
                 <div class="panel-heading">説明</div>
-                <div class="panel-body">{{goodsCtrl.goodsService.currentGoods.description}}</div>
+                <div class="panel-body">{{goodsCtrl.goodsService.currentGoods.description}}
+                    <textarea class="form-control" rows="2" placeholder="説明を入力してください" ng-show="!goodsCtrl.readOnly" ng-model="goodsCtrl.goodsService.currentGoods.description"></textarea>
+                </div>
             </div>
-            <div class="panel panel-default">
+            <div>
+                <button class="btn btn-info" type="button" ng-show="pageCtrl.checkAuthority()" ng-click="goodsCtrl.switchReadOnly()">変更</button>
+                <button class="btn btn-warning" type="button" ng-show="pageCtrl.checkAuthority()" ng-click="goodsCtrl.deleteGoods(goodsCtrl.goodsService.currentGoods)">削除</button>
+            </div>
+            <div class="panel panel-default" ng-controller="commentController as commentCtrl">
                 <div class="panel-heading">コメント</div>
                 <ul class="list-group">
                     <li class="list-group-item" ng-repeat="comment in goodsCtrl.goodsService.currentGoods.comments">
                         <div class="row">
                             <div class="col-sm-2">{{comment.user + " "}}</div>
-                            <div class="col-sm-8"ng-show="goodsCtrl.commentReadOnly">
-                                {{comment.comment}}
-                                <span class="badge">{{comment.stars}}</span>
+                            <div class="col-sm-8">
+                                {{comment.comment}}<span class="badge">{{comment.stars}}</span>
+                                <div ng-show="!commentCtrl.commentReadOnly && pageCtrl.checkUser(comment.user)">
+                                    <textarea type="text" ng-model="comment.comment" rows="1"></textarea>    
+                                </div>
                             </div>
-                            <div class="col-sm-8" ng-show="!goodsCtrl.commentReadOnly">
-                                <textarea type="text" ng-model="comment.comment" rows="1"></textarea>    
-                            </div> 
-                            <div class="col-sm2" ng-show="true">
-                                <button class="btn btn-info pull-right" ng-click="goodsCtrl.switchCommentReadOnly()">e</button>
-                            </div>
-                            <div class="col-sm2" ng-show="true">
-                                <button class="btn btn-warning pull-right" ng-click="goodsCtrl.deleteComment(comment)">x</button>
+                            <div class="col-sm2" ng-show="pageCtrl.checkUser(comment.user)">
+                                <span><button class="btn btn-info glyphicon glyphicon-pencil" ng-click="commentCtrl.switchCommentReadOnly()"></button></span>
+                                <span><button class="btn btn-warning glyphicon glyphicon-trash" ng-click="commentCtrl.deleteComment(goodsCtrl.goodsService.currentGoods, comment)"></button></span>
                             </div>
                         </div>    
                     </li>
@@ -81,7 +87,7 @@
             <!-- コメント入力 -->
             <form ng-controller="commentController as commentCtrl">
                 <div class="row">
-                    <div class="col-sm-2"><input type="text" class="form-control" placeholder="ユーザー名" ng-model="commentCtrl.comment.user"></input></div>
+                    <div class="col-sm-2"><input type="text" class="form-control" placeholder="{{pageCtrl.userService.user.name}}" ng-model="commentCtrl.comment.user"></input></div>
                     <div class="col-sm-4"><textarea type="text" class="form-control" rows="1" placeholder="コメントを入力してください" ng-model="commentCtrl.comment.comment"></textarea></div>
                     <div class="col-sm-4">
                         <span><button class="btn btn-default" type="button" ng-click="commentCtrl.setStars(1)">1</button></span>
@@ -89,6 +95,7 @@
                         <span><button class="btn btn-default" type="button" ng-click="commentCtrl.setStars(3)">3</button></span>
                         <span><button class="btn btn-default" type="button" ng-click="commentCtrl.setStars(4)">4</button></span>
                         <span><button class="btn btn-default" type="button" ng-click="commentCtrl.setStars(5)">5</button></span>
+                        <!-- <span><input type="text" ng-model="commentCtrl.comment.stars" required></input></span> -->
                     </div>
                     <div class="col-sm-2">
                         <button type="submit" class="btn btn-default" ng-click="commentCtrl.addComment(goodsCtrl.goodsService.currentGoods)">コメント送信</button> 
@@ -103,22 +110,22 @@
             <form>
             <div class="form-group">
                 <label>商品名</label>
-                <input type="text" class="form-control" placeholder="商品名を入力してください" ng-readonly="goodsCtrl.isReadOnly()" ng-model="goodsCtrl.goodsService.currentGoods.title"></input>
+                <input type="text" class="form-control" placeholder="商品名を入力してください" ng-model="goodsCtrl.goodsService.currentGoods.title"></input>
             </div>
             <div class="form-group">
                 <label>説明</label>
-                <textarea class="form-control" rows="2" placeholder="説明を入力してください" ng-readonly="goodsCtrl.isReadOnly()" ng-model="goodsCtrl.goodsService.currentGoods.description"></textarea>
+                <textarea class="form-control" rows="2" placeholder="説明を入力してください" ng-model="goodsCtrl.goodsService.currentGoods.description"></textarea>
             </div>
             <div class="form-group">
-                <input type="file" ng-readonly="" id="" ng-model="goodsCtrl.image" ng-click="goodsCtrl.setImage()"></input>
+                <input type="file" id="imageFiles" ng-model="goodsCtrl.image" ng-click="goodsCtrl.setImage()"></input>
             </div>
             <p>Image</p>
+            <!--
             <div ng-repeat="goodsImage in goodsCtrl.goodsService.currentGoods.images">
                 <img src={{goodsImage}}></img>  
             </div>
-            <button ng-show="goodsCtrl.goodsService.isNew" ng-click="goodsCtrl.addGoods(goodsCtrl.goodsService.currentGoods)" type="button" class="btn btn-primary">追加</button>
-            <button ng-show="!goodsCtrl.goodsService.isNew" ng-click="goodsCtrl.switchReadOnly()" type="button" class="btn btn-info">更新</button>
-            <button ng-show="!goodsCtrl.goodsService.isNew" ng-click="goodsCtrl.deleteGoods(goodsCtrl.goodsService.currentGoods)" type="button" class="btn btn-warning">削除</button>
+            -->
+            <button ng-click="goodsCtrl.addGoods(goodsCtrl.goodsService.currentGoods)" type="button" class="btn btn-primary">追加</button>
             </form>
         </div>
     </div>

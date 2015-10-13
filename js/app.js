@@ -6,7 +6,6 @@
    
         var goodsFactory = {
             currentGoods: {},
-            isNew: true,
             goodsList: [
                 { title:"商品名１", description:"これは商品１の説明です。", images: ["img/noimage_s.jpg"], reputation: 3, comments: [{user: "testuser1", comment: "とてもいい商品", stars: 5}, {user: "testuser2", comment: "使い勝手がよくない", stars: 1}] },
                 { title:"商品名２", description:"これは商品２の説明です。", images: ["img/noimage_s.jpg"], reputation: 0, comments: [] },
@@ -18,8 +17,27 @@
         return goodsFactory;
     });
 
-    app.controller('pageController', function(goodsService)
+    app.factory('userService', function(){
+        var userFactory = {
+            user: {name: "matildatilda", authority: 1}    
+        };
+        return userFactory;        
+    });
+
+    app.controller('pageController', function(goodsService, userService)
     {
+        this.userService = userService;
+
+        this.checkAuthority = function()
+        {
+            return (userService.user.authority === 1);
+        };
+        
+        this.checkUser = function(userName)
+        {
+            return(userService.user.name === userName);
+        };
+
         this.setNewGoods = function()
         {
             goodsService.currentGoods = {};
@@ -48,7 +66,7 @@
     app.controller('goodsListController', function(goodsService)
     {
         this.goodsList = goodsService.goodsList;
-
+        
         this.setCurrentGoods = function(goods)
         {
             goodsService.currentGoods = goods;
@@ -59,10 +77,9 @@
     app.controller('goodsController', function(goodsService)
     {
         this.goodsService = goodsService;
-        this.msg = "";
-        this.readonly = true;
+        this.readOnly = true;
         this.image = "";
-        
+
         this.addGoods = function(goods)
         {
             goods.images = goods.images || [];
@@ -78,44 +95,25 @@
             var index = goodsService.goodsList.indexOf(goods);
             if (0 <= index)
             {
-                goodsService.goodsList.splice(index, 1);    
+                goodsService.goodsList.splice(index, 1);
+                this.goodsService.currentGoods = {};
             }
         };
         
         this.switchReadOnly = function()
         {
-            this.readonly = !this.readonly;
+            this.readOnly = !this.readOnly;
         };
-        
-        this.isReadOnly = function()
-        {
-            if (goodsService.isNew)
-            {
-                this.readonly = false;        
-            }
-            return this.readonly;    
-        };
-        
+
         this.setImage = function()
         {
+            /*
             this.goodsService.currentGoods.images = this.goodsService.currentGoods.images || [];
             this.goodsService.currentGoods.images[0] = this.image;
             this.image = "";
-        };
-        
-        this.commentReadOnly = true;
-        this.switchCommentReadOnly = function()
-        {
-            this.commentReadOnly = !this.commentReadOnly;        
-        };
-        
-        this.deleteComment = function(comment)
-        {
-            var index = this.goodsService.currentGoods.comments.indexOf(comment);
-            if (0 <= index)
-            {
-                this.goodsService.currentGoods.comments.splice(index, 1);
-            }
+            */
+            this.image = $('#imageFiles')[0].files[0].name;
+            this.msg = "selected: " + this.image;
         };
     });
     
@@ -150,26 +148,21 @@
             }
             this.comment = {};
         };
-    });
-
-    //--- テスト用
-    app.factory('sampleFactory', function()
-    {
-        var sampleFactory = {
-            message: "Hello, World!",
+        
+        this.commentReadOnly = true;
+        this.switchCommentReadOnly = function()
+        {
+            this.commentReadOnly = !this.commentReadOnly;        
         };
-
-        return sampleFactory;
+        
+        this.deleteComment = function(goods, comment)
+        {
+            var index = goods.comments.indexOf(comment);
+            if (0 <= index)
+            {
+                goods.comments.splice(index, 1);
+            }
+        };
     });
-
-    app.controller("sampleAController", function(sampleFactory)
-    {
-        this.factory = sampleFactory;
-    });
-
-    app.controller("sampleBController", function(sampleFactory)
-    {
-        this.factory = sampleFactory;
-    });
-
+    
 })();
