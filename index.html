@@ -46,11 +46,11 @@
             <div class="panel panel-default">
                 <div class="panel-heading">商品名</div>
                 <div class="panel-body">{{goodsCtrl.goodsService.currentGoods.title}}
-                    <input type="text" class="form-control" placeholder="商品名を入力してください" ng-show="!goodsCtrl.readOnly" ng-model="goodsCtrl.goodsService.currentGoods.title"></input>
+                    <input type="text" class="form-control" placeholder="商品名を入力してください" ng-show="!goodsCtrl.readOnly" ng-model="goodsCtrl.goodsService.currentGoods.title" required></input>
                 </div>
                 <div class="row">
                     <div class="col-sm-4">    
-                        <a href="#" class="thumbnail"><img src="img/noimage_s.jpg" alt="Product Image"></a>
+                        <a href="#" class="thumbnail"><img src="{{goodsCtrl.goodsService.currentGoods.images[0]}}" alt="Product Image"></a>
                     </div>    
                 </div>
             </div>
@@ -73,7 +73,14 @@
                             <div class="col-sm-8">
                                 {{comment.comment}}<span class="badge">{{comment.stars}}</span>
                                 <div ng-show="!commentCtrl.commentReadOnly && pageCtrl.checkUser(comment.user)">
-                                    <textarea type="text" ng-model="comment.comment" rows="1"></textarea>    
+                                    <textarea type="text" ng-model="comment.comment" rows="1"></textarea>
+                                    <div class="btn-group" data-toggle="buttons">
+                                        <label class="btn btn-default" ng-click="comment.stars=1"><input type="radio" name="stars" value="1" ng-model="comment.stars" required>1</input></label> 
+                                        <label class="btn btn-default" ng-click="comment.stars=2"><input type="radio" name="stars" value="2" ng-model="comment.stars" required>2</input></label> 
+                                        <label class="btn btn-default" ng-click="comment.stars=3"><input type="radio" name="stars" value="3" ng-model="comment.stars" required>3</input></label> 
+                                        <label class="btn btn-default" ng-click="comment.stars=4"><input type="radio" name="stars" value="4" ng-model="comment.stars" required>4</input></label> 
+                                        <label class="btn btn-default" ng-click="comment.stars=5"><input type="radio" name="stars" value="5" ng-model="comment.stars" required>5</input></label> 
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-sm2" ng-show="pageCtrl.checkUser(comment.user)">
@@ -85,20 +92,21 @@
                 </ul>
             </div>
             <!-- コメント入力 -->
-            <form ng-controller="commentController as commentCtrl">
+            <form name="commentForm" ng-controller="commentController as commentCtrl" ng-submit="commentCtrl.addComment(goodsCtrl.goodsService.currentGoods)">
                 <div class="row">
-                    <div class="col-sm-2"><input type="text" class="form-control" placeholder="{{pageCtrl.userService.user.name}}" ng-model="commentCtrl.comment.user"></input></div>
+                    <div class="col-sm-2"><input type="text" class="form-control" placeholder="ユーザー名" ng-model="commentCtrl.comment.user" required></input></div>
                     <div class="col-sm-4"><textarea type="text" class="form-control" rows="1" placeholder="コメントを入力してください" ng-model="commentCtrl.comment.comment"></textarea></div>
                     <div class="col-sm-4">
-                        <span><button class="btn btn-default" type="button" ng-click="commentCtrl.setStars(1)">1</button></span>
-                        <span><button class="btn btn-default" type="button" ng-click="commentCtrl.setStars(2)">2</button></span>
-                        <span><button class="btn btn-default" type="button" ng-click="commentCtrl.setStars(3)">3</button></span>
-                        <span><button class="btn btn-default" type="button" ng-click="commentCtrl.setStars(4)">4</button></span>
-                        <span><button class="btn btn-default" type="button" ng-click="commentCtrl.setStars(5)">5</button></span>
-                        <!-- <span><input type="text" ng-model="commentCtrl.comment.stars" required></input></span> -->
+                        <div class="btn-group" data-toggle="buttons">
+                            <label class="btn btn-default" ng-click="commentCtrl.setStars(1)"><input type="radio" id="star1" name="stars" value="1" ng-model="commentCtrl.comment.stars" required>1</input></label> 
+                            <label class="btn btn-default" ng-click="commentCtrl.setStars(2)"><input type="radio" id="star2" name="stars" value="2" ng-model="commentCtrl.comment.stars" required>2</input></label> 
+                            <label class="btn btn-default" ng-click="commentCtrl.setStars(3)"><input type="radio" id="star3" name="stars" value="3" ng-model="commentCtrl.comment.stars" required>3</input></label> 
+                            <label class="btn btn-default" ng-click="commentCtrl.setStars(4)"><input type="radio" id="star4" name="stars" value="4" ng-model="commentCtrl.comment.stars" required>4</input></label> 
+                            <label class="btn btn-default" ng-click="commentCtrl.setStars(5)"><input type="radio" id="star5" name="stars" value="5" ng-model="commentCtrl.comment.stars" required>5</input></label> 
+                        </div>
                     </div>
                     <div class="col-sm-2">
-                        <button type="submit" class="btn btn-default" ng-click="commentCtrl.addComment(goodsCtrl.goodsService.currentGoods)">コメント送信</button> 
+                        <button type="submit" class="btn btn-default" ng-disable="commentForm.$invalid">コメント送信</button> 
                     </div>
                 </div>
             </form>
@@ -117,14 +125,10 @@
                 <textarea class="form-control" rows="2" placeholder="説明を入力してください" ng-model="goodsCtrl.goodsService.currentGoods.description"></textarea>
             </div>
             <div class="form-group">
-                <input type="file" id="imageFiles" ng-model="goodsCtrl.image" ng-click="goodsCtrl.setImage()"></input>
+                <input type="file" id="imageFiles" file-selector="goodsCtrl.fileName"></input>
+                <label>File: {{goodsCtrl.fileName}}</label></br>
+                <img src="{{goodsCtrl.fileName}}"></img>
             </div>
-            <p>Image</p>
-            <!--
-            <div ng-repeat="goodsImage in goodsCtrl.goodsService.currentGoods.images">
-                <img src={{goodsImage}}></img>  
-            </div>
-            -->
             <button ng-click="goodsCtrl.addGoods(goodsCtrl.goodsService.currentGoods)" type="button" class="btn btn-primary">追加</button>
             </form>
         </div>

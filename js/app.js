@@ -19,7 +19,7 @@
 
     app.factory('userService', function(){
         var userFactory = {
-            user: {name: "matildatilda", authority: 1}    
+            user: {name: "testuser1", authority: 1}    
         };
         return userFactory;        
     });
@@ -78,7 +78,7 @@
     {
         this.goodsService = goodsService;
         this.readOnly = true;
-        this.image = "";
+        this.fileName = "";
 
         this.addGoods = function(goods)
         {
@@ -104,31 +104,24 @@
         {
             this.readOnly = !this.readOnly;
         };
-
-        this.setImage = function()
-        {
-            /*
-            this.goodsService.currentGoods.images = this.goodsService.currentGoods.images || [];
-            this.goodsService.currentGoods.images[0] = this.image;
-            this.image = "";
-            */
-            this.image = $('#imageFiles')[0].files[0].name;
-            this.msg = "selected: " + this.image;
-        };
     });
     
-    app.controller('commentController', function()
+    app.controller('commentController', function(userService)
     {
-        this.comment = {};
+        this.userService = userService;
+        this.comment = {
+            user: this.userService.user.name,
+            comment: "",
+            stars: 0
+        };
 
         this.setStars = function(star)
         {
             this.comment.stars = star;    
         };
-        
+
         this.addComment = function(goods)
         {
-            this.comment.stars = this.comment.stars || 1;
             goods.comments.push(this.comment);
 
             //評価の再計算
@@ -146,7 +139,11 @@
             {
                 goods.reputation = 0;    
             }
-            this.comment = {};
+            this.comment = {
+                user: this.userService.user.name,
+                comment: "",
+                stars: 0
+            };  
         };
         
         this.commentReadOnly = true;
@@ -163,6 +160,22 @@
                 goods.comments.splice(index, 1);
             }
         };
+    });
+    
+    app.directive('fileSelector', function(){
+        return {
+            restrict: 'A',
+            link: function(scope, element, attrs)
+            {
+                element.bind('change', function(event)
+                {
+                    var fileName = event.target.files[0].name;
+                    scope.goodsCtrl.fileName = "img/" + fileName;    //?
+                    console.dir(scope);
+                    scope.$apply();
+                });
+            }    
+        };    
     });
     
 })();
